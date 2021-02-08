@@ -7,13 +7,13 @@ Operation:
 -'single' = extract one ROI per each roi code
 -'sum' = combined all roi codes into one big roi
 
-Laterality
+Laterality:
 Choose whether you want left, right, or bilateral ROIs to be extracted
 -'l' = left
 -'r' = right
 -'b' = bilateral
 
-Dilation
+Dilation:
 Select how much the resulting mask should be dilated. For instance, if you
 set this to 2, the mask will be expanded by 2 voxels in all 3 dimensions. 
 No dilation = 0 (default setting). 
@@ -99,7 +99,7 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
     end
     %% Generate a summary mask file from all selected ROIs 
     % create summary image, with all selected ROIs pooled into one
-    if strcmp(operation,'sum')
+    if strcmp(operation,'sum') && length(roicodes) > 1
         out_label = strrep(strcat(num2str(roicodes)),' ','');
         clear matlabbatch
         matlabbatch{1}.spm.util.imcalc.input = sum_inputs';
