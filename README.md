@@ -7,7 +7,7 @@ This script lets you easily extract a specific binary mask file from the HCP-MMP
 3) Check that both the atlas files (.nii) and the mmp.csv file are in the same folder. 
 
 ## How to use
-This is a simple script that takes the volumetric map of the Human Connectome Project MMP1.0 parcellation (included here), extracts a desired ROI, and saves it as a binary mask file. The volumetric map is in MNI space, and so will the resulting mask files. 
+This is a simple script that takes the volumetric map of the Human Connectome Project MMP1.0 parcellation (included here), extracts a desired ROI, and saves it as a binary mask file. The volumetric map is in MNI space, and so will be the resulting mask files. 
 1) Go to the ROI lookup table (mmp.csv). Find the ROI you are interested in, and write down the ROI code (num.roi column). You can run multiple ROIs or just one. 
 2) call the create_HCP_mask() function. 
 
@@ -17,14 +17,15 @@ This is a simple script that takes the volumetric map of the Human Connectome Pr
 - an output folder
 - operation: If you picked multiple rois you can either save all separately ('single'), or combine them into a single large ROI ('sum'). 
 - laterality: You can select whether you want to extract left ('l'), right ('r'), or bilateral ('b') ROIs. 
+Example: create_HCP_mask([1:3], '/MyAtlasFolder/', '/MyOutputFolder/', 'single', 'b')
 
 ## Sources
-The files used here are not mine, all credits to the creators:
+The atlas and lookup table files used here are not mine, all credits to the creators:
 - volumetric HCP-MMN1.0 map: https://figshare.com/articles/dataset/HCP-MMP1_0_projected_on_MNI2009a_GM_volumetric_in_NIfTI_format/3501911
 - ROI lookup table: https://github.com/mcfreund/stroop-rsa/blob/master/out/atlases/mmp.csv
 
 ## Requirements
-- downloaded all files and unzip the HCP-MMP1_on_MNI152_ICBM2009a_nlin.zip file
+- downloaded all files and unzip the HCP_atlas.zip file
 - Matlab + SPM12 installed
 
 ## Bugs / Improvements
