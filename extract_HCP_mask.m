@@ -13,6 +13,11 @@ Choose whether you want left, right, or bilateral ROIs to be extracted
 -'r' = right
 -'b' = bilateral
 
+Dilation
+Select how much the resulting mask should be dilated. For instance, if you
+set this to 2, the mask will be expanded by 2 voxels in all 3 dimensions. 
+No dilation = 0 (default setting). 
+
 Example calls:
 1) extract single ROI (roi number 2) into default path
 extract_HCP_mask(2, 'C:\root\fmri-extract-HCP-mask\', 'D:\root\fmri-extract-HCP-mask\','single','b')
@@ -23,12 +28,14 @@ extract_HCP_mask([2 4 8], 'C:\root\fmri-extract-HCP-mask\', 'D:\root\fmri-extrac
 save it in a new folder (don't forget the '\' at the end!)
 extract_HCP_mask([4 21 45], 'D:\GitHub\fmri-extract-HCP-mask\', 'D:\GitHub\fmri-extract-HCP-mask\NEWFOLDER\','sum','b')
 
+---
+David Wisniewski (david.wisniewski@ugent.be)
+Carlos González-García (carlos.gonzalezgarcia@ugent.be)
 %}
 
-function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality)
+function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality, dilation)
 
     %% PREPARATION
-
     % create output folder if it does not exist
     if ~exist(output_path)
         mkdir(output_path)
@@ -43,13 +50,13 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
         % we automatically extract the ROI label from the table file
         fid = fopen (sprintf('%s%s',HCP_path, table_fname));
         out = textscan(fid,'%s%s%s%s%s%s','Delimiter',',','Headerlines',1);
-        out_label = out{6}{roicodes(r)}(2:end-1); % this is the label we will use to name the output mask file
+        out_label = out{6}{roicodes(r)};%(2:end-1); % this is the label we will use to name the output mask file
         % clean up the label string: remove all spaces
         out_label= out_label(find(~isspace(out_label)));
         % remove dots . and plusses +, this will mess up saving the file
         out_label = regexprep(out_label,'[.+]','');
 
-        %% Generate binary mask file
+        %% Generate a single binary mask file per selected ROI
         clear matlabbatch
         % select either bilateral, left or right roi
         if laterality=='b'
@@ -63,22 +70,35 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
             matlabbatch{1}.spm.util.imcalc.output = sprintf('%s_right.nii',out_label);
         end
         matlabbatch{1}.spm.util.imcalc.outdir = {output_path};
-        matlabbatch{1}.spm.util.imcalc.expression = sprintf('(i1<%d)&(i1>%d)',roicodes(r)+.1,roicodes(r)-.1); % we just select the chosen ROI here 
+        matlabbatch{1}.spm.util.imcalc.expression = sprintf('(i1<%.2d)&(i1>%.2d)',roicodes(r)+.1,roicodes(r)-.1); % we just select the chosen ROI here 
         matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
         matlabbatch{1}.spm.util.imcalc.options.dmtx = 0;
         matlabbatch{1}.spm.util.imcalc.options.mask = 0;
         matlabbatch{1}.spm.util.imcalc.options.interp = 0;
         matlabbatch{1}.spm.util.imcalc.options.dtype = 4;
         spm_jobman('run',matlabbatch); 
+        % dilate resulting image
+        if exist('dilation') % was the argument handed to the function?
+            if dilation % is dilation > 0?
+                % read the resulting image 
+                result_header = spm_vol(sprintf('%s%s',output_path,matlabbatch{1}.spm.util.imcalc.output));
+                result_volume = spm_read_vols(result_header);
+                % dilate the mask
+                dilated_volume = dilate_volume(result_volume, dilation);
+                % overwrite the undilated mask
+                spm_write_vol(result_header,dilated_volume);         
+            end
+        end
+               
         if strcmp(operation,'single')
-            fprintf(['------ ' sprintf('%s.nii',out_label) ' written to folder------\n'])
+            fprintf(['------ ' matlabbatch{1}.spm.util.imcalc.output ' written to folder ------\n'])
         else
             sum_inputs(r) = {sprintf('%s%s',output_path, matlabbatch{1}.spm.util.imcalc.output)};
         end
         
     end
-    
-    
+    %% Generate a summary mask file from all selected ROIs 
+    % create summary image, with all selected ROIs pooled into one
     if strcmp(operation,'sum')
         out_label = strrep(strcat(num2str(roicodes)),' ','');
         clear matlabbatch
@@ -98,7 +118,15 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
         matlabbatch{1}.spm.util.imcalc.options.interp = 0;
         matlabbatch{1}.spm.util.imcalc.options.dtype = 4;
         spm_jobman('run',matlabbatch);
+        % dilate resulting image
+        if exist('dilation')
+            if dilation
+                result_header = spm_vol(sprintf('%s%s',output_path,matlabbatch{1}.spm.util.imcalc.output));
+                result_volume = spm_read_vols(result_header);
+                dilated_volume = dilate_volume(result_volume, dilation);
+                spm_write_vol(result_header,dilated_volume);         
+            end
+        end
     end
-
 end
 
