@@ -30,7 +30,7 @@ extract_HCP_mask([4 21 45], 'D:\GitHub\fmri-extract-HCP-mask\', 'D:\GitHub\fmri-
 
 ---
 David Wisniewski (david.wisniewski@ugent.be)
-Carlos Gonz·lez-GarcÌa (carlos.gonzalezgarcia@ugent.be)
+Carlos Gonz√°lez-Garc√≠a (carlos.gonzalezgarcia@ugent.be)
 %}
 
 function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality, dilation)
@@ -50,7 +50,7 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
         % we automatically extract the ROI label from the table file
         fid = fopen (sprintf('%s%s',HCP_path, table_fname));
         out = textscan(fid,'%s%s%s%s%s%s','Delimiter',',','Headerlines',1);
-        out_label = out{6}{roicodes(r)};%(2:end-1); % this is the label we will use to name the output mask file
+        out_label = out{2}{roicodes(r)}; % this is the label we will use to name the output mask file
         % clean up the label string: remove all spaces
         out_label= out_label(find(~isspace(out_label)));
         % remove dots . and plusses +, this will mess up saving the file
