@@ -17,7 +17,9 @@ This is a simple script that takes the volumetric map of the Human Connectome Pr
 - an output folder
 - operation: If you picked multiple rois you can either save all separately ('single'), or combine them into a single large ROI ('sum'). 
 - laterality: You can select whether you want to extract left ('l'), right ('r'), or bilateral ('b') ROIs. 
-Example: create_HCP_mask([1:3], '/MyAtlasFolder/', '/MyOutputFolder/', 'single', 'b')
+- dilation: Select whether you want to dilate the resulting ROI masks. The script will expand the ROI by n voxels in each direction, where n is the number you enter here. Default: n = 0 (no dilation). 
+
+Example: create_HCP_mask([1:3], '/MyAtlasFolder/', '/MyOutputFolder/', 'single', 'b', 2)
 
 ## Sources
 The atlas and lookup table files used here are not mine, all credits to the creators:
