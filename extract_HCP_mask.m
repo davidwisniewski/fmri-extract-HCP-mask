@@ -30,12 +30,12 @@ extract_HCP_mask([4 21 45], 'D:\GitHub\fmri-extract-HCP-mask\', 'D:\GitHub\fmri-
 
 ---
 David Wisniewski (david.wisniewski@ugent.be)
-Carlos Gonz√°lez-Garc√≠a (carlos.gonzalezgarcia@ugent.be)
+Carlos Gonz·lez-GarcÌa (carlos.gonzalezgarcia@ugent.be)
 %}
 
 function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality, dilation)
 
-    %% PREPARATION
+%% PREPARATION
     % create output folder if it does not exist
     if ~exist(output_path)
         mkdir(output_path)
@@ -70,7 +70,7 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
             matlabbatch{1}.spm.util.imcalc.output = sprintf('%s_right.nii',out_label);
         end
         matlabbatch{1}.spm.util.imcalc.outdir = {output_path};
-        matlabbatch{1}.spm.util.imcalc.expression = sprintf('(i1<%.2d)&(i1>%.2d)',roicodes(r)+.1,roicodes(r)-.1); % we just select the chosen ROI here 
+        matlabbatch{1}.spm.util.imcalc.expression = sprintf('(i1<%g)&(i1>%g)',roicodes(r)+.1,roicodes(r)-.1); % we just select the chosen ROI here 
         matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
         matlabbatch{1}.spm.util.imcalc.options.dmtx = 0;
         matlabbatch{1}.spm.util.imcalc.options.mask = 0;
@@ -100,13 +100,23 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
     %% Generate a summary mask file from all selected ROIs 
     % create summary image, with all selected ROIs pooled into one
     if strcmp(operation,'sum') && length(roicodes) > 1
-        out_label = strrep(strcat(num2str(roicodes)),' ','');
+        % first create a label for the sum image, by concatenating all
+        % individual labels
+        out_label_sum=[];
+        for r = 1:length(roicodes)
+            out_label = out{2}{roicodes(r)};%(2:end-1); % this is the label we will use to name the output mask file
+            % clean up the label string: remove all spaces
+            out_label= out_label(find(~isspace(out_label)));
+            % remove dots . and plusses +, this will mess up saving the file
+            out_label = regexprep(out_label,'[.+]','');
+            out_label_sum = [out_label_sum out_label]
+        end
         clear matlabbatch
         matlabbatch{1}.spm.util.imcalc.input = sum_inputs';
         if laterality=='b'
-            matlabbatch{1}.spm.util.imcalc.output = sprintf('%s_sum_bilateral.nii',out_label);
+            matlabbatch{1}.spm.util.imcalc.output = sprintf('%s_sum_bilateral.nii',out_label_sum);
         elseif laterality=='l'
-            matlabbatch{1}.spm.util.imcalc.output = sprintf('%s_sum_left.nii',out_label);
+            matlabbatch{1}.spm.util.imcalc.output = sprintf('%s_sum_left.nii',out_label_sum);
         elseif laterality=='r'
             matlabbatch{1}.spm.util.imcalc.output = sprintf('%s_sum_right.nii',out_label);
         end
