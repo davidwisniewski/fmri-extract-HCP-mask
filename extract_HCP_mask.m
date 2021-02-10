@@ -109,7 +109,7 @@ function extract_HCP_mask(roicodes, HCP_path, output_path, operation, laterality
             out_label= out_label(find(~isspace(out_label)));
             % remove dots . and plusses +, this will mess up saving the file
             out_label = regexprep(out_label,'[.+]','');
-            out_label_sum = [out_label_sum out_label]
+            out_label_sum = [out_label_sum out_label];
         end
         clear matlabbatch
         matlabbatch{1}.spm.util.imcalc.input = sum_inputs';
